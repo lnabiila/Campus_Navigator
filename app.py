@@ -1,11 +1,3 @@
-import streamlit as st
-import networkx as nx
-import plotly.graph_objects as go
-import math
-from collections import deque
-import time
-
-# === Data Kampus dan Posisi Node ===
 nodes = {
     "A": {"name": "Engineering Faculty", "pos": (0, 0)},
     "B": {"name": "Economics Faculty", "pos": (2, 3)},
