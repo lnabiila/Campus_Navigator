@@ -102,7 +102,7 @@ def draw_graph(G, path=[]):
 
     node_x, node_y = [], []
     icon_map = {
-        "Engineering Faculty": "🏗️",
+        "Engineering Faculty": "🏗",
         "Economics Faculty": "💼",
         "Library": "📚",
         "Rectorate Building": "🏢",
@@ -111,7 +111,7 @@ def draw_graph(G, path=[]):
         "Student Center": "🎓",
         "Sports Hall": "🏀",
         "Auditorium": "🎤",
-        "Cafeteria": "🍽️",
+        "Cafeteria": "🍽",
     }
 
     node_labels = []
