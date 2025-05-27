@@ -1,3 +1,9 @@
+import streamlit as st
+import plotly.graph_objects as go
+import math
+from collections import deque
+import time
+
 nodes = {
     "A": {"name": "Engineering Faculty", "pos": (0, 0)},
     "B": {"name": "Economics Faculty", "pos": (2, 3)},
