@@ -1,4 +1,5 @@
 import streamlit as st
+import networkx as nx
 import plotly.graph_objects as go
 import math
 from collections import deque
