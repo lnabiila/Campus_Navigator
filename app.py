@@ -102,7 +102,6 @@ def draw_graph(G, path=[]):
 
     node_x, node_y = [], []
     icon_map = {
-        "Engineering Faculty": "🏗️",
         "Engineering Faculty": "🏗",
         "Economics Faculty": "💼",
         "Library": "📚",
@@ -111,8 +110,8 @@ def draw_graph(G, path=[]):
         "Campus Mosque": "🕌",
         "Student Center": "🎓",
         "Sports Hall": "🏀",
-        "Auditorium": "🎤", 
-        "Cafeteria": "🍽️",
+        "Auditorium": "🎤",
+        "Cafeteria": "🍽",
     }
 
     node_labels = []
@@ -124,8 +123,6 @@ def draw_graph(G, path=[]):
         label = G.nodes[node]['label']
         node_labels.append(label)  # hanya nama tanpa emoji
         node_icons.append(icon_map.get(label, "📍"))  # icon besar saja
-        node_labels.append(label)  
-        node_icons.append(icon_map.get(label, "📍"))  
 
     fig = go.Figure()
 
@@ -159,27 +156,6 @@ def draw_graph(G, path=[]):
         text=node_labels,
         textposition="top center",
         hoverinfo='skip',  # biar hover tidak tabrakan dengan icon
-    ))
-
-    fig.add_trace(go.Scatter(
-        x=node_x, y=node_y,
-        mode='text',
-        text=node_icons,
-        textposition="middle center",
-        hoverinfo="text",
-        hovertext=node_labels,
-        hoverlabel=dict(bgcolor="lightyellow"),
-        textfont=dict(size=30),
-        showlegend=False
-    ))
-
-   
-    fig.add_trace(go.Scatter(
-        x=node_x, y=[y + 0.3 for y in node_y],  
-        mode='text',
-        text=node_labels,
-        textposition="top center",
-        hoverinfo='skip',  
         textfont=dict(size=12, color='black'),
         showlegend=False
     ))
@@ -223,205 +199,6 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
-
-
-# === Inject Google Fonts and CSS for dark/light mode ===
-st.markdown("""
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&display=swap" rel="stylesheet">
-
-    <style>
-    /* Dark mode */
-    @media (prefers-color-scheme: dark) {
-        .stApp {
-            background-color: #121212;
-            color: #f5f5f5;
-        }
-        .sidebar .css-1d391kg {
-            background: linear-gradient(180deg, #4a90e2 0%, #357abd 100%);
-            color: #ffffff;
-        }
-
-        /* Tombol tetap biru di dark mode */
-        .stButton > button {
-            background-color: #0073e6 !important;
-            color: #ffffff !important;
-            border-radius: 12px !important;
-            font-weight: 700 !important;
-            transition: background-color 0.3s ease, box-shadow 0.3s ease !important;
-            box-shadow: 0 4px 12px rgba(0, 115, 230, 0.5) !important;
-            border: none !important;
-        }
-
-        .stButton > button:hover {
-            background-color: #005bbb !important;
-            box-shadow: 0 6px 16px rgba(0, 91, 187, 0.6) !important;
-            cursor: pointer !important;
-        }
-
-        /* Sidebar styling */
-        [data-testid="stSidebar"] {
-            font-family: 'Montserrat', sans-serif;
-            padding: 2rem 1.5rem 3rem;
-            border-right: 1px solid #444;
-            min-width: 280px;
-            background-color: #1e1e1e;
-        }
-
-        /* Sidebar headers */
-        [data-testid="stSidebar"] h2 {
-            font-weight: 700;
-            font-size: 1.8rem;
-            margin-bottom: 1rem;
-            text-align: center;
-            color: #ffffff;
-        }
-
-        /* Selectbox styling */
-        div[data-baseweb="select"] > div {
-            border-color: #3399ff !important;
-            box-shadow: 0 0 0 2px rgba(51, 153, 255, 0.4) !important;
-            background-color: #1e1e1e !important;
-            color: #ffffff !important;
-        }
-
-        /* Main Title and Subtitle */
-        .main-title {
-            font-family: 'Montserrat', sans-serif;
-            font-weight: 700;
-            font-size: 3.2rem;
-            margin-bottom: 0.1rem;
-            color: #f0f0f0;
-        }
-        .subtitle {
-            font-family: 'Montserrat', sans-serif;
-            font-weight: 500;
-            font-size: 1.3rem;
-            margin-bottom: 2rem;
-            color: #bbbbbb;
-        }
-
-        /* Result card */
-        .result-card {
-            background: #1c1c1c;
-            padding: 1.8rem 2rem;
-            border-radius: 18px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-            margin-bottom: 2rem;
-            font-size: 1.15rem;
-            color: #2c2c2c;
-        }
-
-        /* Route list hover */
-        .route-list-item {
-            padding: 8px 12px;
-            margin-bottom: 6px;
-            border-radius: 12px;
-            transition: background-color 0.3s ease;
-            font-weight: 600;
-            cursor: default;
-            color: #2c2c2c;
-        }
-        .route-list-item:hover {
-            background-color: #2a3b55;
-            color: #66aaff;
-            box-shadow: 0 3px 8px rgba(102, 170, 255, 0.2);
-        }
-    }
-
-    /* Light mode */
-    @media (prefers-color-scheme: light) {
-        .stApp {
-            background-color: #fafafa;
-            color: #212121;
-        }
-        .sidebar .css-1d391kg {
-            background: linear-gradient(180deg, #4a90e2 0%, #357abd 100%);
-            color:  #333;
-        }
-        /* Paksa tombol selalu biru - berlaku untuk dark dan light mode */
-        .stButton > button {
-            background-color: #0073e6 !important; /* biru utama */
-            color: #ffffff !important;
-            border-radius: 12px !important;
-            font-weight: 700 !important;
-            transition: background-color 0.3s ease, box-shadow 0.3s ease !important;
-            box-shadow: 0 4px 12px rgba(0, 115, 230, 0.5) !important;
-            border: none !important;
-        }
-
-        .stButton > button:hover {
-            background-color: #005bbb !important; /* biru lebih gelap saat hover */
-            box-shadow: 0 6px 16px rgba(0, 91, 187, 0.6) !important;
-            cursor: pointer !important;
-        }
-
-    }
-
-    /* Sidebar styling */
-    [data-testid="stSidebar"] {
-        font-family: 'Montserrat', sans-serif;
-        padding: 2rem 1.5rem 3rem;
-        border-right: 1px solid #ccc;
-        min-width: 280px;
-    }
-
-    /* Sidebar headers */
-    [data-testid="stSidebar"] h2 {
-        font-weight: 700;
-        font-size: 1.8rem;
-        margin-bottom: 1rem;
-        text-align: center;
-    }
-
-    /* Selectbox styling */
-    div[data-baseweb="select"] > div {
-        border-color: #0073e6 !important;
-        box-shadow: 0 0 0 2px rgba(0, 115, 230, 0.3) !important;
-    }
-
-    /* Main Title and Subtitle */
-    .main-title {
-        font-family: 'Montserrat', sans-serif;
-        font-weight: 700;
-        font-size: 3.2rem;
-        margin-bottom: 0.1rem;
-        color: #222222;
-    }
-    .subtitle {
-        font-family: 'Montserrat', sans-serif;
-        font-weight: 500;
-        font-size: 1.3rem;
-        margin-bottom: 2rem;
-        color: #555555;
-    }
-
-    /* Result card */
-    .result-card {
-        background: white;
-        padding: 1.8rem 2rem;
-        border-radius: 18px;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
-        margin-bottom: 2rem;
-        font-size: 1.15rem;
-    }
-
-    /* Route list hover */
-    .route-list-item {
-        padding: 8px 12px;
-        margin-bottom: 6px;
-        border-radius: 12px;
-        transition: background-color 0.3s ease;
-        font-weight: 600;
-        cursor: default;
-    }
-    .route-list-item:hover {
-        background-color: #f0f4ff;
-        color: #0056b3;
-        box-shadow: 0 3px 8px rgba(0, 86, 179, 0.2);
-    }
-    </style>
-""", unsafe_allow_html=True)
-
 
 # === Inject Google Fonts and CSS for dark/light mode ===
 st.markdown("""
