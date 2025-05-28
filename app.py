@@ -3,41 +3,38 @@ import networkx as nx
 import plotly.graph_objects as go
 import math
 from collections import deque
-import time
 
+# --- University Building Data
 nodes = {
-    "A": {"name": "Engineering Faculty", "pos": (0, 0)},
-    "B": {"name": "Economics Faculty", "pos": (2, 3)},
-    "C": {"name": "Library", "pos": (4, 1)},
-    "D": {"name": "Rectorate Building", "pos": (6, 0)},
-    "E": {"name": "Computer Science Faculty", "pos": (8, 3)},
-    "F": {"name": "Campus Mosque", "pos": (10, 0)},
-    "G": {"name": "Student Center", "pos": (5, 5)},
-    "H": {"name": "Sports Hall", "pos": (7, 6)},
-    "I": {"name": "Auditorium", "pos": (9, 5)},
-    "J": {"name": "Cafeteria", "pos": (3, 7)},
+    "A": {"name": "Faculty of Engineering", "pos": (0, 0)},
+    "B": {"name": "Faculty of Economics", "pos": (1, 2)},
+    "C": {"name": "Library", "pos": (2, 1)},
+    "D": {"name": "Rectorate Building", "pos": (3, 0)},
+    "E": {"name": "Faculty of Computer Science", "pos": (4, 2)},
+    "F": {"name": "Campus Mosque", "pos": (5, 0)},
 }
-
-UNIT_METER = 100
 
 def euclidean(a, b):
     xa, ya = a
     xb, yb = b
     return math.hypot(xa - xb, ya - yb)
 
+# Create edges if distance is under a certain threshold
 edges = []
 keys = list(nodes.keys())
 for i in range(len(keys)):
     for j in range(i + 1, len(keys)):
         d = euclidean(nodes[keys[i]]["pos"], nodes[keys[j]]["pos"])
-        if d < 5:
+        if d < 3.5:  # connection threshold
             edges.append((keys[i], keys[j], d))
 
+# --- Graph Initialization
 G = nx.Graph()
 for k, v in nodes.items():
     G.add_node(k, label=v["name"], pos=v["pos"])
 G.add_weighted_edges_from(edges)
 
+# --- DFS Algorithm
 def dfs(graph, start, goal):
     visited = set()
     stack = [(start, [start])]
@@ -52,6 +49,7 @@ def dfs(graph, start, goal):
                     stack.append((neighbor, path + [neighbor]))
     return []
 
+# --- BFS Algorithm
 def bfs(graph, start, goal):
     visited = set()
     queue = deque([(start, [start])])
@@ -66,6 +64,7 @@ def bfs(graph, start, goal):
                     queue.append((neighbor, path + [neighbor]))
     return []
 
+# --- Greedy Nearest Neighbor Algorithm
 def greedy(graph, start, goal):
     visited = set()
     path = [start]
@@ -82,363 +81,75 @@ def greedy(graph, start, goal):
                     min_dist = dist
                     next_node = neighbor
         if next_node is None:
-            return []
+            return []  # cannot reach goal
         path.append(next_node)
         current = next_node
     return path
 
-
+# --- Visualization
 def draw_graph(G, path=[]):
     edge_x, edge_y = [], []
-    edge_text = []
-    for edge in G.edges(data=True):
+    for edge in G.edges():
         x0, y0 = G.nodes[edge[0]]['pos']
         x1, y1 = G.nodes[edge[1]]['pos']
         edge_x.extend([x0, x1, None])
         edge_y.extend([y0, y1, None])
-        dist_meters = edge[2]['weight'] * UNIT_METER
-        edge_text.append(f"{dist_meters:.0f} m")
 
     node_x, node_y = [], []
-    icon_map = {
-        "Engineering Faculty": "🏗",
-        "Economics Faculty": "💼",
-        "Library": "📚",
-        "Rectorate Building": "🏢",
-        "Computer Science Faculty": "💻",
-        "Campus Mosque": "🕌",
-        "Student Center": "🎓",
-        "Sports Hall": "🏀",
-        "Auditorium": "🎤",
-        "Cafeteria": "🍽",
-    }
-
     node_labels = []
-    node_icons = []
     for node in G.nodes():
         x, y = G.nodes[node]['pos']
         node_x.append(x)
         node_y.append(y)
-        label = G.nodes[node]['label']
-        node_labels.append(label)  # hanya nama tanpa emoji
-        node_icons.append(icon_map.get(label, "📍"))  # icon besar saja
+        node_labels.append(G.nodes[node]['label'])
 
     fig = go.Figure()
 
-    # edges
-    fig.add_trace(go.Scatter(
-        x=edge_x, y=edge_y,
-        line=dict(width=1, color='#777'),
-        hoverinfo='text',
-        mode='lines',
-        text=edge_text,
-        hoverlabel=dict(bgcolor="white")
-    ))
+    # Edges
+    fig.add_trace(go.Scatter(x=edge_x, y=edge_y, line=dict(width=1, color='gray'), mode='lines'))
 
-    # icon besar (emoji) saja sebagai node
+    # Nodes
     fig.add_trace(go.Scatter(
-        x=node_x, y=node_y,
-        mode='text',
-        text=node_icons,
-        textposition="middle center",
-        hoverinfo="text",
-        hovertext=node_labels,
-        hoverlabel=dict(bgcolor="lightyellow"),
-        textfont=dict(size=30),
-        showlegend=False
-    ))
+        x=node_x, y=node_y, mode='markers+text',
+        text=node_labels, textposition="bottom center",
+        marker=dict(size=15, color='skyblue')))
 
-    # label nama bangunan (text saja, tanpa emoji), posisi agak di atas icon
-    fig.add_trace(go.Scatter(
-        x=node_x, y=[y + 0.3 for y in node_y],  # geser sedikit ke atas
-        mode='text',
-        text=node_labels,
-        textposition="top center",
-        hoverinfo='skip',  # biar hover tidak tabrakan dengan icon
-        textfont=dict(size=12, color='black'),
-        showlegend=False
-    ))
-
-    # highlight path
+    # Path highlight
     if path:
         path_x, path_y = [], []
         for i in range(len(path) - 1):
             x0, y0 = G.nodes[path[i]]['pos']
-            x1, y1 = G.nodes[path[i + 1]]['pos']
+            x1, y1 = G.nodes[path[i+1]]['pos']
             path_x.extend([x0, x1, None])
             path_y.extend([y0, y1, None])
-        fig.add_trace(go.Scatter(
-            x=path_x, y=path_y,
-            mode='lines',
-            line=dict(width=7, color='crimson', dash='solid'),
-            name='Route',
-            hoverinfo='none',
-        ))
+        fig.add_trace(go.Scatter(x=path_x, y=path_y, mode='lines', line=dict(width=4, color='red')))
 
-    fig.update_layout(
-        title="Campus Map",
-        title_font_size=26,
-        font_family="Montserrat, sans-serif",
-        font_size=14,
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(245,245,245,1)',
-        margin=dict(l=40, r=40, t=70, b=40),
-        xaxis=dict(showgrid=False, zeroline=False, visible=False),
-        yaxis=dict(showgrid=False, zeroline=False, visible=False),
-        hovermode="closest",
-        height=600
-    )
+    fig.update_layout(showlegend=False, margin=dict(l=10, r=10, t=10, b=10))
     return fig
 
+# --- Streamlit UI
+st.title("🏫 Campus Navigator")
+st.markdown("Find the best route between buildings on campus using your selected algorithm.")
 
-# === Streamlit Page Setup ===
-st.set_page_config(
-    page_title=" Campus Navigator",
-    page_icon="🏫",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
+options = list(nodes.keys())
+start = st.selectbox("Select Start Building", options, format_func=lambda x: nodes[x]["name"])
+goal = st.selectbox("Select Destination Building", options, format_func=lambda x: nodes[x]["name"])
+algo = st.selectbox("Choose Algorithm", ["DFS", "BFS", "Greedy"])
 
-# === Inject Google Fonts and CSS for dark/light mode ===
-st.markdown("""
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&display=swap" rel="stylesheet">
-
-    <style>
-    /* Dark mode */
-    @media (prefers-color-scheme: dark) {
-        .stApp {
-            background-color: #121212;
-            color: #f5f5f5;
-        }
-        .sidebar .css-1d391kg {
-            background: linear-gradient(180deg, #2d3e50 0%, #1c2833 100%);
-            color: #ffffff;
-        }
-
-        /* Tombol tetap biru di dark mode */
-        .stButton > button {
-            background-color: #0073e6 !important;
-            color: #ffffff !important;
-            border-radius: 12px !important;
-            font-weight: 700 !important;
-            transition: background-color 0.3s ease, box-shadow 0.3s ease !important;
-            box-shadow: 0 4px 12px rgba(0, 115, 230, 0.5) !important;
-            border: none !important;
-        }
-
-        .stButton > button:hover {
-            background-color: #005bbb !important;
-            box-shadow: 0 6px 16px rgba(0, 91, 187, 0.6) !important;
-            cursor: pointer !important;
-        }
-
-        /* Sidebar styling */
-        [data-testid="stSidebar"] {
-            font-family: 'Montserrat', sans-serif;
-            padding: 2rem 1.5rem 3rem;
-            border-right: 1px solid #444;
-            min-width: 280px;
-            background-color: #1e1e1e;
-        }
-
-        /* Sidebar headers */
-        [data-testid="stSidebar"] h2 {
-            font-weight: 700;
-            font-size: 1.8rem;
-            margin-bottom: 1rem;
-            text-align: center;
-            color: #ffffff;
-        }
-
-        /* Selectbox styling */
-        div[data-baseweb="select"] > div {
-            border-color: #3399ff !important;
-            box-shadow: 0 0 0 2px rgba(51, 153, 255, 0.4) !important;
-            background-color: #1e1e1e !important;
-            color: #ffffff !important;
-        }
-
-        /* Main Title and Subtitle */
-        .main-title {
-            font-family: 'Montserrat', sans-serif;
-            font-weight: 700;
-            font-size: 3.2rem;
-            margin-bottom: 0.1rem;
-            color: #f0f0f0;
-        }
-        .subtitle {
-            font-family: 'Montserrat', sans-serif;
-            font-weight: 500;
-            font-size: 1.3rem;
-            margin-bottom: 2rem;
-            color: #bbbbbb;
-        }
-
-        /* Result card */
-        .result-card {
-            background: #1c1c1c;
-            padding: 1.8rem 2rem;
-            border-radius: 18px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-            margin-bottom: 2rem;
-            font-size: 1.15rem;
-            color: #2c2c2c;
-        }
-
-        /* Route list hover */
-        .route-list-item {
-            padding: 8px 12px;
-            margin-bottom: 6px;
-            border-radius: 12px;
-            transition: background-color 0.3s ease;
-            font-weight: 600;
-            cursor: default;
-            color: #2c2c2c;
-        }
-        .route-list-item:hover {
-            background-color: #2a3b55;
-            color: #66aaff;
-            box-shadow: 0 3px 8px rgba(102, 170, 255, 0.2);
-        }
-    }
-
-    /* Light mode */
-    @media (prefers-color-scheme: light) {
-        .stApp {
-            background-color: #fafafa;
-            color: #212121;
-        }
-        .sidebar .css-1d391kg {
-            background: linear-gradient(180deg, #4a90e2 0%, #357abd 100%);
-            color: #fff;
-        }
-        /* Paksa tombol selalu biru - berlaku untuk dark dan light mode */
-        .stButton > button {
-            background-color: #0073e6 !important; /* biru utama */
-            color: #ffffff !important;
-            border-radius: 12px !important;
-            font-weight: 700 !important;
-            transition: background-color 0.3s ease, box-shadow 0.3s ease !important;
-            box-shadow: 0 4px 12px rgba(0, 115, 230, 0.5) !important;
-            border: none !important;
-        }
-
-        .stButton > button:hover {
-            background-color: #005bbb !important; /* biru lebih gelap saat hover */
-            box-shadow: 0 6px 16px rgba(0, 91, 187, 0.6) !important;
-            cursor: pointer !important;
-        }
-
-    }
-
-    /* Sidebar styling */
-    [data-testid="stSidebar"] {
-        font-family: 'Montserrat', sans-serif;
-        padding: 2rem 1.5rem 3rem;
-        border-right: 1px solid #ccc;
-        min-width: 280px;
-    }
-
-    /* Sidebar headers */
-    [data-testid="stSidebar"] h2 {
-        font-weight: 700;
-        font-size: 1.8rem;
-        margin-bottom: 1rem;
-        text-align: center;
-    }
-
-    /* Selectbox styling */
-    div[data-baseweb="select"] > div {
-        border-color: #0073e6 !important;
-        box-shadow: 0 0 0 2px rgba(0, 115, 230, 0.3) !important;
-    }
-
-    /* Main Title and Subtitle */
-    .main-title {
-        font-family: 'Montserrat', sans-serif;
-        font-weight: 700;
-        font-size: 3.2rem;
-        margin-bottom: 0.1rem;
-        color: #222222;
-    }
-    .subtitle {
-        font-family: 'Montserrat', sans-serif;
-        font-weight: 500;
-        font-size: 1.3rem;
-        margin-bottom: 2rem;
-        color: #555555;
-    }
-
-    /* Result card */
-    .result-card {
-        background: white;
-        padding: 1.8rem 2rem;
-        border-radius: 18px;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
-        margin-bottom: 2rem;
-        font-size: 1.15rem;
-    }
-
-    /* Route list hover */
-    .route-list-item {
-        padding: 8px 12px;
-        margin-bottom: 6px;
-        border-radius: 12px;
-        transition: background-color 0.3s ease;
-        font-weight: 600;
-        cursor: default;
-    }
-    .route-list-item:hover {
-        background-color: #f0f4ff;
-        color: #0056b3;
-        box-shadow: 0 3px 8px rgba(0, 86, 179, 0.2);
-    }
-    </style>
-""", unsafe_allow_html=True)
-
-# === Layout ===
-with st.sidebar:
-    st.markdown("## Select Route")
-    start = st.selectbox("Start", list(nodes.keys()), format_func=lambda x: nodes[x]["name"])
-    goal = st.selectbox("Destination", list(nodes.keys()), format_func=lambda x: nodes[x]["name"])
-    algo = st.selectbox("Algorithm", ["DFS", "BFS", "Greedy Nearest Neighbor"])
-    find_route = st.button("Find Route")
-
-with st.container():
-    st.markdown('<h1 class="main-title">🏫 Campus Navigator</h1>', unsafe_allow_html=True)
-    st.markdown('<p class="subtitle">Explore the campus and find your best path using graph algorithms.</p>', unsafe_allow_html=True)
-
-    route = []
-    if find_route:
-        if start == goal:
-            st.warning("❗ Starting and destination building cannot be the same.")
-        else:
-            with st.spinner("Calculating the best route... ⏳"):
-                time.sleep(1)  # simulate loading
-                if algo == "DFS":
-                    route = dfs(G, start, goal)
-                elif algo == "BFS":
-                    route = bfs(G, start, goal)
-                else:
-                    route = greedy(G, start, goal)
-
-        if route:
-            total_m = sum(G[route[i]][route[i+1]]['weight'] * UNIT_METER for i in range(len(route)-1))
-            total_km = total_m / 1000
-            route_names = [nodes[r]["name"] for r in route]
-
-            route_html = f"""
-            <div class="result-card">
-                <div><strong>✅ Route found:</strong> {' → '.join(route_names)}</div>
-                <div><strong>📏 Total distance:</strong> {total_m:.0f} meters ({total_km:.2f} km)</div>
-                <br/>
-                {"".join(f'<div class="route-list-item">{i+1}. {loc}</div>' for i, loc in enumerate(route_names))}
-            </div>
-            """
-            st.markdown(route_html, unsafe_allow_html=True)
-
-            fig = draw_graph(G, path=route)
-            st.plotly_chart(fig, use_container_width=True)
-
+if st.button("🔍 Find Route"):
+    if algo == "DFS":
+        route = dfs(G, start, goal)
+    elif algo == "BFS":
+        route = bfs(G, start, goal)
     else:
-        st.info("⬅ Please select start, destination, and algorithm, then click Find Route.")
+        route = greedy(G, start, goal)
+
+    if route:
+        names = [nodes[r]["name"] for r in route]
+        total = sum(G[route[i]][route[i+1]]['weight'] for i in range(len(route)-1))
+        st.success(f"Route found: {' → '.join(names)}")
+        st.info(f"Total distance: {total:.2f} units")
+        fig = draw_graph(G, path=route)
+        st.plotly_chart(fig, use_container_width=True)
+    else:
+        st.warning("Route not found.")
